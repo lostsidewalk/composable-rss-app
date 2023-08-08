@@ -1,0 +1,3 @@
+[submodule "composable-rss-api"]
+	path = composable-rss-api
+	url = https://github.com/lostsidewalk/composable-rss-api.git
