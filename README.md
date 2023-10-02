@@ -4,13 +4,90 @@
 
 composable-rss is a platform that allows you to programmatically create, publish, and manage syndicated web feeds.  
 
-#### *What is a syndicated web feed?*
+## To self-host ComposableRSS:
 
+## 1. Setup docker-compose.yml:
 
-#### composable-rss works by combining the newsgears-rss feed server with a RESTful HTTP Application Programming Interface to provide endpoints for managing the entire lifecycle of  syndicated web feeds, in RSS 2.0, ATOM 1.0, and JSON formats.  
+Create a docker-compose.yml file from the same provided in this repository.
 
-See [here](https://github.com/lostsidewalkllc/newsgears-app) for more information about the entire NewsGears platform (which also includes an aggregator and a web-based reader component), and see [here]() for more information about the NewsGears feed server component, which is a dependency of this program.    
+```
+cp docker-compose.yml.sample docker-compose.yml 
+```
 
-This repository contains all material necessary to build the composable-rss-api server image, as well as the newsgears-rss feed server image, using instructions located [here]().  
+#### (Optional) If you want to enable OAUTH2 via Google:
+- ```SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENTID=@null```
+- ```SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENTSECRET=@null```
+- ```SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_REDIRECTURI=http://localhost:8080/oauth2/callback/{registrationId}```
+- ```SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_SCOPE=email,profile```
 
-A Docker composition is provided that can be used to start the containers locally (e.g., using <code>docker-compose up</code>), once built.
+Get your own values for client Id/client secret from Google and plug them in to these variables in ```docker-compose.yml```.
+
+The value of the OAuth2 redirect URI should be:
+
+```
+http://localhost:8080/oauth2/callback/{registrationId}
+```
+
+This is suitable for cases where your browser can reach ComposableRSS via localhost, port 8080, which should be the vast majority of cases.
+
+The value of the ```scope``` property must be ```email,profile```, regardless of the OAuth2 provider.
+
+If you don't want to use OAuth2, you'll have to go through the account registration process in order to login.
+
+<hr>
+
+## 2. Quick-start using pre-built containers:
+
+If you don't want to do development, just start ComposableRSS using pre-built containers:
+
+```
+docker-compose up
+```
+
+<hr>
+
+## 3. For local development:
+
+If you don't want to use the pre-built containers (i.e., you want to make custom code changes and build your own containers), then use the following instructions.
+
+### Setup command aliases:
+
+A script called `build_module.sh` is provided to expedite image assembly.  Setup command aliases to run it to build the required images after you make code changes:
+
+```
+alias crss-api='./build_module.sh composable-rss-api'
+alias ng-rss='./build_module.sh newsgears-rss'
+alias crss-client='./buid_client.sh'
+```
+
+#### Alternately, setup aliases build debuggable containers:
+
+```
+alias crss-api='./build_module.sh composable-rss-api --debug 45005'
+alias ng-rss='./build_module.sh newsgears-rss --debug 65005'
+alias crss-client='./build_client.sh'
+```
+
+*Debuggable containers pause on startup until a remote debugger is attached on the specified port.*
+
+### Build and run:
+
+#### Run the following command in the directory that contains ```composable-rss-app```:
+
+```
+crss-api && ng-rss && crss-client && docker-compose up
+```
+
+Boot down in the regular way, by using ```docker-compose down``` in the ```composable-rss-app``` directory.
+
+<hr> 
+
+You can also use the `crss-api`, `ng-rss`, and `crss-client` aliases to rebuild the containers (i.e., to deploy code changes).
+
+```
+$ crss-api # rebuild the API server container 
+$ ng-rss # rebuild the RSS server container 
+$ crss-client # rebuild the client container 
+```
+
+Restart after each. 
