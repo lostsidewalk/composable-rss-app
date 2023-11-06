@@ -16,7 +16,7 @@ services:
     volumes:
       - cache:/data
   composable-rss-app01:
-    image: "composable-rss/composable-rss-api:latest-local"
+    image: "lostsidewalk/composable-rss-api:latest-local"
     environment:
       - COMPRSS_DEVELOPMENT=false
       - COMPRSS_APPURL=http://composable-rss-app01:8080
@@ -41,8 +41,27 @@ services:
     links:
       - feedgears-db01
       - feedgears-cache01
+  composable-rss-engine01:
+    image: "lostsidewalk/composable-rss-engine:latest-local"
+    environment:
+      - DEBUG=false
+      - COMPRSS_DEVELOPMENT=false
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://feedgears-db01:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_REDIS_HOST=feedgears-cache01
+      - SPRING_REDIS_PASSWORD=redis
+    ports:
+      - "8082:8082"
+      - "55005:55005"
+    depends_on:
+      - feedgears-db01
+      - feedgears-cache01
+      - composable-rss-app01
+    links:
+      - feedgears-db01
   feedgears-feed01:
-    image: "feedgears/newsgears-rss:latest-local"
+    image: "lostsidewalk/newsgears-rss:latest-local"
     environment:
       - NEWSGEARS_DEVELOPMENT=false
       - SPRING_DATASOURCE_URL=jdbc:postgresql://feedgears-db01:5432/postgres
@@ -58,12 +77,12 @@ services:
     depends_on:
       - feedgears-db01
       - feedgears-cache01
-  composable-rss-client01:
-    image: "composable-rss/composable-rss-client"
-    ports:
-      - "3000:3000"
-    depends_on:
-      - composable-rss-app01
+  # composable-rss-client01:
+  #   image: "lostsidewalk/composable-rss-client"
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - composable-rss-app01
 volumes:
   cache:
     driver: local

@@ -11,12 +11,14 @@ echo "Current dir: ${CURRENT_DIR}"
 # change to the client dir
 cd composable-rss-client
 
+npm install 
+
 # build the artifacts via gradle
 npm run build
 
 # build the docker image with the updated artifacts
 docker build \
-  -t composable-rss/composable-rss-client:latest-local \
+  -t lostsidewalk/composable-rss-client:latest-local \
   .
 
 # return to parent dir (newsgears-app)

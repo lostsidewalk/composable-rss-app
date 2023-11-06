@@ -2,7 +2,7 @@
 
 # composable-rss-app
 
-composable-rss is a platform that allows you to programmatically create, publish, and manage syndicated web feeds.  
+composable-rss is a platform that allows you to programmatically create, publish, and manage syndicated web feeds.
 
 ## To self-host ComposableRSS:
 
@@ -56,6 +56,7 @@ A script called `build_module.sh` is provided to expedite image assembly.  Setup
 
 ```
 alias crss-api='./build_module.sh composable-rss-api'
+alias crss-engine='./build_module.sh composable-rss-engine'
 alias ng-rss='./build_module.sh newsgears-rss'
 alias crss-client='./buid_client.sh'
 ```
@@ -64,6 +65,7 @@ alias crss-client='./buid_client.sh'
 
 ```
 alias crss-api='./build_module.sh composable-rss-api --debug 45005'
+alias crss-engine='./build_module.sh composable-rss-engine --debug 55005'
 alias ng-rss='./build_module.sh newsgears-rss --debug 65005'
 alias crss-client='./build_client.sh'
 ```
@@ -75,17 +77,18 @@ alias crss-client='./build_client.sh'
 #### Run the following command in the directory that contains ```composable-rss-app```:
 
 ```
-crss-api && ng-rss && crss-client && docker-compose up
+crss-api && crss-engine && ng-rss && crss-client && docker-compose up
 ```
 
 Boot down in the regular way, by using ```docker-compose down``` in the ```composable-rss-app``` directory.
 
 <hr> 
 
-You can also use the `crss-api`, `ng-rss`, and `crss-client` aliases to rebuild the containers (i.e., to deploy code changes).
+You can also use the `crss-api`, `crss-engine`, `ng-rss`, and `crss-client` aliases to rebuild the containers (i.e., to deploy code changes).
 
 ```
 $ crss-api # rebuild the API server container 
+$ crss-engine $ rebuild the engine server container 
 $ ng-rss # rebuild the RSS server container 
 $ crss-client # rebuild the client container 
 ```

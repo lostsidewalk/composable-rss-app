@@ -1,3 +1,5 @@
 .idea
 build-profiles
 docker-compose.yml
+results.out
+

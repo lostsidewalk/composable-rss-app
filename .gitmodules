@@ -7,3 +7,6 @@
 [submodule "composable-rss-client"]
 	path = composable-rss-client
 	url = https://github.com/lostsidewalk/composable-rss-client.git
+[submodule "composable-rss-engine"]
+	path = composable-rss-engine
+	url = https://github.com/lostsidewalk/composable-rss-engine.git
