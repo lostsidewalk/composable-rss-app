@@ -2,7 +2,17 @@
 
 # composable-rss-app
 
-composable-rss is a platform that allows you to programmatically create, publish, and manage syndicated web feeds.
+composable-rss is a multi-user, self-hosted platform that allows you to programmatically create, publish, and manage syndicated web feeds.
+
+The ComposableRSS platform is based on four container types, thus this repository contains four submodules:
+
+composable-rss-api: provides HTTP-based REST access to the core syndicated web feed management capabilities of the entire platform
+
+composable-rss-engine: performs scheduled/periodic tasks, such as expiring posts, re-deploying feeds, etc. 
+
+composable-rss-client: a browser application that provides internal users a way to access documentation, manage API keys, and view metrics related to their feeds. 
+
+newsgears-rss: a feed server that can serve syndicated web feeds (RSS, ATOM, others) to your (external) users.  
 
 ## To self-host ComposableRSS:
 
