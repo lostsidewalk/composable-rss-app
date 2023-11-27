@@ -19,6 +19,7 @@ services:
     image: "lostsidewalk/composable-rss-api:latest-local"
     environment:
       - COMPRSS_DEVELOPMENT=false
+      - COMPRSS_SINGLEUSERMODE=false
       - COMPRSS_APPURL=http://composable-rss-app01:8080
       - COMPRSS_ORIGINURL=http://localhost:3000
       - SPRING_DATASOURCE_URL=jdbc:postgresql://feedgears-db01:5432/postgres
@@ -35,7 +36,6 @@ services:
       - TOKEN_SERVICE_SECRET=secret
     ports:
       - "8080:8080"
-      - "45005:45005"
     depends_on:
       - feedgears-db01
     links:
@@ -53,7 +53,6 @@ services:
       - SPRING_REDIS_PASSWORD=redis
     ports:
       - "8082:8082"
-      - "55005:55005"
     depends_on:
       - feedgears-db01
       - feedgears-cache01
@@ -71,18 +70,24 @@ services:
       - SPRING_REDIS_PASSWORD=redis
     ports:
       - "8081:8081"
-      - "65005:65005"
     links:
       - feedgears-db01
     depends_on:
       - feedgears-db01
       - feedgears-cache01
-  # composable-rss-client01:
-  #   image: "lostsidewalk/composable-rss-client"
-  #   ports:
-  #     - "3000:3000"
-  #   depends_on:
-  #     - composable-rss-app01
+      - composable-rss-app01
+  composable-rss-client01:
+    image: "lostsidewalk/composable-rss-client:latest"
+    environment:
+      - NUXT_COMPRSS_API_URL=http://composable-rss-app01:8080
+      - NUXT_COMPRSS_ORIGIN_URL=http://localhost:3000
+      - NUXT_FEEDGEARS_FEED_URL=http://feedgears-feed01:8081
+    ports:
+      - "3000:3000"
+    depends_on:
+      - composable-rss-app01
+    links:
+      - composable-rss-app01
 volumes:
   cache:
     driver: local

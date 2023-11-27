@@ -1,0 +1,96 @@
+version: '2'
+services:
+  feedgears-db01:
+    image: "postgres:latest"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+  feedgears-cache01:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass redis
+    volumes:
+      - cache:/data
+  composable-rss-app01:
+    image: "lostsidewalk/composable-rss-api:latest-local"
+    environment:
+      - COMPRSS_DEVELOPMENT=false
+      - COMPRSS_SINGLEUSERMODE=true
+      - COMPRSS_APPURL=http://composable-rss-app01:8080
+      - COMPRSS_ORIGINURL=http://localhost:3000
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://feedgears-db01:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_REDIS_HOST=feedgears-cache01
+      - SPRING_REDIS_PASSWORD=redis
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_REDIRECTURI=http://localhost:8080/oauth2/callback/{registrationId}
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENTID=@null
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENTSECRET=@null
+      - SPRING_MAIL_HOST=localhost
+      - SPRING_MAIL_USERNAME=smtpUser
+      - SPRING_MAIL_PASSWORD=smtpPassword
+      - TOKEN_SERVICE_SECRET=secret
+    ports:
+      - "8080:8080"
+      - "45005:45005"
+    depends_on:
+      - feedgears-db01
+    links:
+      - feedgears-db01
+      - feedgears-cache01
+  composable-rss-engine01:
+    image: "lostsidewalk/composable-rss-engine:latest-local"
+    environment:
+      - DEBUG=false
+      - COMPRSS_DEVELOPMENT=false
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://feedgears-db01:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_REDIS_HOST=feedgears-cache01
+      - SPRING_REDIS_PASSWORD=redis
+    ports:
+      - "8082:8082"
+      - "55005:55005"
+    depends_on:
+      - feedgears-db01
+      - feedgears-cache01
+      - composable-rss-app01
+    links:
+      - feedgears-db01
+  feedgears-feed01:
+    image: "lostsidewalk/newsgears-rss:latest-local"
+    environment:
+      - NEWSGEARS_DEVELOPMENT=false
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://feedgears-db01:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_REDIS_HOST=feedgears-cache01
+      - SPRING_REDIS_PASSWORD=redis
+    ports:
+      - "8081:8081"
+      - "65005:65005"
+    links:
+      - feedgears-db01
+    depends_on:
+      - feedgears-db01
+      - feedgears-cache01
+      - composable-rss-app01
+  composable-rss-client01:
+    image: "lostsidewalk/composable-rss-client:latest"
+    environment:
+      - NUXT_COMPRSS_API_URL=http://composable-rss-app01:8080
+      - NUXT_COMPRSS_ORIGIN_URL=http://localhost:3000
+      - NUXT_FEEDGEARS_FEED_URL=http://feedgears-feed01:8081
+    ports:
+      - "3000:3000"
+    depends_on:
+      - composable-rss-app01
+    links:
+      - composable-rss-app01
+volumes:
+  cache:
+    driver: local
