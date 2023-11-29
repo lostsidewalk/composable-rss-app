@@ -76,18 +76,6 @@ services:
       - feedgears-db01
       - feedgears-cache01
       - composable-rss-app01
-  composable-rss-client01:
-    image: "lostsidewalk/composable-rss-client:latest"
-    environment:
-      - NUXT_COMPRSS_API_URL=http://composable-rss-app01:8080
-      - NUXT_COMPRSS_ORIGIN_URL=http://localhost:3000
-      - NUXT_FEEDGEARS_FEED_URL=http://feedgears-feed01:8081
-    ports:
-      - "3000:3000"
-    depends_on:
-      - composable-rss-app01
-    links:
-      - composable-rss-app01
 volumes:
   cache:
     driver: local
