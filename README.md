@@ -4,7 +4,7 @@
 
 ComposableRSS is a multi-user, self-hosted platform that allows you to programmatically create, publish, and manage syndicated web feeds.
 
-![image_here]()
+![screenshot_121923](https://github.com/lostsidewalk/composable-rss-app/assets/75078721/b005fb08-3ada-473a-8e29-ae06ca293482)
 
 ## Features 
 
