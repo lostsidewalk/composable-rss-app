@@ -19,13 +19,13 @@ ComposableRSS is a multi-user, self-hosted platform that allows you to programma
 
 The ComposableRSS platform is comprised of four main components, thus this repository contains four submodules:
 
-composable-rss-api: provides HTTP-based REST access to the core syndicated web feed management capabilities of the entire platform
+**[composable-rss-api](https://github.com/lostsidewalk/composable-rss-api)**: provides HTTP-based REST access to the core syndicated web feed management capabilities of the entire platform
 
-composable-rss-engine: performs scheduled/periodic tasks, such as expiring posts, re-deploying feeds, etc. 
+**[composable-rss-engine](https://github.com/lostsidewalk/composable-rss-engine)**: performs scheduled/periodic tasks, such as expiring posts, re-deploying feeds, etc. 
 
-composable-rss-client: a browser application that provides internal users a way to access documentation, manage API keys, and view metrics related to their feeds. 
+**[composable-rss-client](https://github.com/lostsidewalk/composable-rss-client)**: a browser application that provides internal users a way to access documentation, manage API keys, and view metrics related to their feeds. 
 
-newsgears-rss: a feed server that can serve syndicated web feeds (RSS, ATOM, others) to your (external) users.  
+**[newsgears-rss](https://github.com/lostsidewalk/newsgears-rss)**: a feed server that can serve syndicated web feeds (RSS, ATOM, others) to your (external) users.  
 
 ## To self-host ComposableRSS:
 
@@ -39,6 +39,16 @@ docker-compose up
 ```
 
 This is the simplest configuration, and will boot the app with the minimal number of containers necessary to run the app, and without authentication.  
+
+The `multi-user` configurations will cause the app to require authentication to login, either via OAuth2 (which must also be configured, see below), or via local user account registration.  The `debug` and `headless` configurartions are for development purposes, see below. 
+
+Note that you must have the following ports free on localhost: 
+- 5432 postgres
+- 6379 redis
+- 8080 API
+- 8082 engine
+- 8083 broker
+- 3000 front-end
 
 Once the containers are fully booted, navigating to http://localhost:3000 will take you directly into the app.   
 
@@ -65,9 +75,11 @@ The value of the ```scope``` property must be ```email,profile```, regardless of
 
 ## 2. For local development: 
 
+I recommend using IntelliJ IDEA w/Lombok and Gradle support for developing the back-end components, and vscode for developing the front-end. See [CONTRIBUTING.md](CONTRIBUTING.md) for more information.  
+
 ### build_module.sh: 
 
-A script called `build_module.sh` is provided to expedite image assembly for newsgears-api, newsgears-engine, and newsgears-broker:  
+A script called `build_module.sh` is provided to expedite image assembly for composable-rss-api, composable-rss-engine, and newsgears-rss:  
 
 ```
 build_module.sh composable-rss-api --debug 45005 
