@@ -91,6 +91,8 @@ The `--debug <port>` parameter instructs the build script to configure the image
 
 The provided `docker-compose.single-user.debug.yml.sample` file uses the `latest-debug` images, and also exposes the necessary ports to reach your local debugger.  
 
+This script should be run from the top-level project directory (`composable-rss-app`).  
+
 ### build_client.sh: 
 
 The client module image is assembled with `build_client.sh`: 
@@ -100,6 +102,8 @@ buid_client.sh
 ```
 
 The provided `headless` docker-compose files exclude the client module, so that you can run it in an IDE (vscode suggested), using `npm run devserve` (or similar).   
+
+This script should be run from the top-level project directory (`composable-rss-app`).  
 
 ## Screenshot 
 
