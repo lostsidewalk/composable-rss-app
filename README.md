@@ -2,16 +2,16 @@
 
 # ComposableRSS
 
-ComposableRSS is a multi-user, self-hosted platform that allows you to programmatically create, publish, and manage syndicated web feeds.
+ComposableRSS is a multiuser platform for creating, publishing, and fully managing all aspects of the syndicated web feed lifecycle. It provides a robust solution for managing web feeds and content distribution using a developer-friendly REST API. ComposableRSS is built upon the GPLV3 NewsGears libraries, implemented entirely in Java, and is freely available on Github.
 
 ## Features 
 
 - Syndicated feed server supporting RSS, ATOM, and JSON formats 
 - REST API for creating feeds and content, and managing the entire feed lifecycle 
-- Supports RSS, ATOM, and JSON formats 
-- Supports feed authentication
-- Supports iTunes podcast feeds  
-- Suppots MediaRSS feeds (i.e., Youtube channels) 
+- Supports publishing web feeds in RSS, ATOM, and JSON formats 
+- Supports feed authentication using HTTP BASIC with unlimited number of users 
+- Supports publishing iTunes podcast feeds  
+- Supports publishing MediaRSS feeds (i.e., Youtube channels) 
 - OpenAPIv3 specification for easy integration/code generation  
 - Scalable architecture can support thousands of concurrent users
 - Free and self-hostable, get ComposableRSS up and running in seconds
@@ -45,9 +45,9 @@ The `multi-user` configurations will cause the app to require authentication to 
 Note that you must have the following ports free on localhost: 
 - 5432 postgres
 - 6379 redis
-- 8080 API
+- 8080 API server 
+- 8081 feed server 
 - 8082 engine
-- 8083 broker
 - 3000 front-end
 
 Once the containers are fully booted, navigating to http://localhost:3000 will take you directly into the app.   
@@ -73,7 +73,136 @@ The value of the ```scope``` property must be ```email,profile```, regardless of
 
 <hr>
 
-## 2. For local development: 
+## 2. Using the API:
+
+When authentication is required, the ComposableRSS API requires two header values to be present in each request:
+
+```
+X-ComposableRSS-API-Key API Key
+X-ComposableRSS-API-Secret API Secret
+```
+
+Assuming `API_KEY` and `API_SECRET` are properly defined environment variables, you can query the ComposableRSS API using cURL as follows:
+
+```
+curl -H "X-ComposableRSS-API-Key ${API_KEY}" -H "X-ComposableRSS-API-Secret ${API_SECRET}" http://localhost:8080/[endpoint]
+```
+
+### Create and publish a feed 
+
+To publish your first web feed, start by creating a *post queue*. A post queue is a container for articles.  In RSS, a queue is ultimately represented by a *channel*, while posts are *items*; in ATOM, a queue is a *feed*, and posts and *entries*.  The only required field in the request is 'ident,' a short unique identifier for the queue. Let's name our queue 'spiders' 🕷️, which will contain articles (posts) about spiders 🕷️:
+
+```
+curl --request POST \
+  -H "Content-Type: application/json" \
+  -H "X-ComposableRSS-API-Key: ${API_KEY}" \
+  -H "X-ComposableRSS-API-Secret: ${API_SECRET}" \
+  --data '{ "ident": "spiders" }' \
+  http://localhost:8080/v1/queues
+```
+
+The response payload will look like this:
+
+```
+{
+  "deployResponses":
+  {
+    "ATOM_10":
+    {
+      "publisherIdent": "ATOM_10",
+      "timestamp": "2023-11-08T15:23:29.132+00:00",
+      "urls":
+      [
+        "http://localhost:8081/feed/atom/c9e99583-62b2-4acc-aff7-cefc6c911e9b",
+        "http://localhost:8081/feed/atom/me/spiders"
+      ]
+    },
+    "JSON":
+    {
+      "publisherIdent": "JSON",
+      "timestamp": "2023-11-08T15:23:29.146+00:00",
+      "urls":
+      [
+        "http://localhost:8081/feed/json/c9e99583-62b2-4acc-aff7-cefc6c911e9b",
+        "http://localhost:8081/feed/json/me/spiders"
+      ]
+    },
+    "RSS_20":
+    {
+      "publisherIdent": "RSS_20",
+      "timestamp": "2023-11-08T15:23:29.132+00:00",
+      "urls":
+      [
+        "http://localhost:8081/feed/rss/c9e99583-62b2-4acc-aff7-cefc6c911e9b",
+        "http://localhost:8081/feed/rss/me/spiders"
+      ]
+    }
+  },
+  "queueDTO":
+  {
+    "ident": "spiders",
+    "isAuthenticated": false,
+    "language": "en-US",
+    "transportIdent": "c9e99583-62b2-4acc-aff7-cefc6c911e9b"
+  }
+}
+```
+
+The HTTP 201 (CREATED) response status code indicates that the queue was successfully created. The body of the response provides the URLs of the associated feeds organized by format (the deployResponses section), and the properties of the newly created queue (the queueDTO section). ComposableRSS will respond with this information any time you create or change a queue.
+
+Following each feed URL, we can see that our queue is delivered in the requested format by the feed server:
+
+```
+curl -X GET http://localhost:8081/feed/rss/me/spiders
+
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>spiders</title>
+    <link>http://localhost:8081/feed/rss/c9e99583-62b2-4acc-aff7-cefc6c911e9b</link>
+    <description>spiders</description>
+    <language>en-US</language>
+    <pubDate>Wed, 08 Nov 2023 15:23:29 GMT</pubDate>
+    <generator>NewsGears RSS</generator>
+    <ttl>10</ttl>
+  </channel>
+</rss>
+```
+
+```
+curl -X GET http://localhost:8081/feed/atom/me/spiders
+
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>spiders</title>
+  <link rel="self" href="http://localhost:8081/feed/atom/c9e99583-62b2-4acc-aff7-cefc6c911e9b" />
+  <subtitle type="text">spiders</subtitle>
+  <id>http://localhost:8081/feed/atom/c9e99583-62b2-4acc-aff7-cefc6c911e9b</id>
+  <generator uri="https://www.feedgears.com" version="0.5.9">NewsGears RSS</generator>
+</feed>
+```
+
+```
+curl -X GET http://localhost:8081/feed/json/me/spiders
+
+{
+  "feed":
+  {
+    "ident": "spiders",
+    "language": "en-US",
+    "pubDate": "Nov 8, 2023, 3:23:29 PM",
+    "url": "http://localhost:8081/feed/json/c9e99583-62b2-4acc-aff7-cefc6c911e9b"
+  },
+  "posts":
+  []
+}
+```
+
+Our 'spiders' 🕷️ feed is currently missing any items/entries since our newly created queue doesn't have any posts yet. Adding posts will be the next step after exploring how to set up authentication, an optional step for securing access to your feeds.
+
+Further API documentation is available in the client UI, which you can reach at [http://localhost:3000](http://localhost:3000).
+
+## 3. For local development: 
 
 I recommend using IntelliJ IDEA w/Lombok and Gradle support for developing the back-end components, and vscode for developing the front-end. See [CONTRIBUTING.md](CONTRIBUTING.md) for more information.  
 
@@ -101,11 +230,11 @@ The client module image is assembled with `build_client.sh`:
 buid_client.sh
 ```
 
-The provided `headless` docker-compose files exclude the client module, so that you can run it in an IDE (vscode suggested), using `npm run devserve` (or similar).   
+The provided `headless` docker-compose files exclude the client module, so that you can run it in an IDE (vscode suggested), using `npm run dev -o --` (or similar).   
 
 This script should be run from the top-level project directory (`composable-rss-app`).  
 
-## Screenshot 
+## 4. Screenshot 
 
 ![screenshot_121923](https://github.com/lostsidewalk/composable-rss-app/assets/75078721/b005fb08-3ada-473a-8e29-ae06ca293482)
 
